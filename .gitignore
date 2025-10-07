@@ -30,3 +30,15 @@
 2025/ppt242B.tmp
 .ipynb_checkpoints/WS2_Augment_CNNLayer-checkpoint.ipynb
 .ipynb_checkpoints/WS3_LeNet-checkpoint.ipynb
+2025/.ipynb_checkpoints/WS3_LeNet-checkpoint.ipynb
+2025/best_model.pt
+2025/data/cifar-10-batches-py/batches.meta
+2025/data/cifar-10-batches-py/data_batch_1
+2025/data/cifar-10-batches-py/data_batch_2
+2025/data/cifar-10-batches-py/data_batch_3
+2025/data/cifar-10-batches-py/data_batch_4
+2025/data/cifar-10-batches-py/data_batch_5
+2025/data/cifar-10-batches-py/readme.html
+2025/data/cifar-10-batches-py/test_batch
+2025/data/cifar-10-python.tar.gz
+2025/submission.csv
