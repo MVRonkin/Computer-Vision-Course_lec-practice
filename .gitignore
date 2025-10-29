@@ -15294,3 +15294,8 @@ anaconda_projects/db/project_filebrowser.db
 2025/data/for tricks_n_train/.ipynb_checkpoints/2_9_Setting_Training-checkpoint.ipynb
 2025/.virtual_documents/WS6_Tricks_in_Training CNN.ipynb
 2025/.virtual_documents/WS6_Tricks_in_Training CNN.ipynb
+2025/lightning_logs/lightning_logs/version_0/metrics.csv
+2025/lightning_logs/lightning_logs/version_0/hparams.yaml
+2025/lightning_logs/lightning_logs/version_0/checkpoints/epoch=9-step=80.ckpt
+2024/.ipynb_checkpoints/AILightingTransferLearning (2)-checkpoint.ipynb
+2024/.ipynb_checkpoints/WS5_Tricks_in_Training CNN-checkpoint.ipynb
