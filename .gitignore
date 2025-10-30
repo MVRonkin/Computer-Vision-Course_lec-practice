@@ -15316,3 +15316,5 @@ anaconda_projects/db/project_filebrowser.db
 2025/lightning_logs/version_1/metrics.csv
 2025/training_history.csv
 2025/Untitled.ipynb
+2025/test.ipynb
+2025/setup_torch.py
