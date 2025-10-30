@@ -15299,3 +15299,20 @@ anaconda_projects/db/project_filebrowser.db
 2025/lightning_logs/lightning_logs/version_0/checkpoints/epoch=9-step=80.ckpt
 2024/.ipynb_checkpoints/AILightingTransferLearning (2)-checkpoint.ipynb
 2024/.ipynb_checkpoints/WS5_Tricks_in_Training CNN-checkpoint.ipynb
+2025/.ipynb_checkpoints/06 Tricks_In_Train-checkpoint.ipynb
+2025/.ipynb_checkpoints/setup_torch-checkpoint.py
+2025/.ipynb_checkpoints/test-checkpoint.ipynb
+2025/.ipynb_checkpoints/torch_trainer-checkpoint.py
+2025/.ipynb_checkpoints/torch_trainer_v1-checkpoint.py
+2025/.ipynb_checkpoints/training_history-checkpoint.csv
+2025/.ipynb_checkpoints/Untitled-checkpoint.ipynb
+2025/__pycache__/setup_torch.cpython-39.pyc
+2025/__pycache__/torch_trainer.cpython-39.pyc
+2025/__pycache__/torch_trainer_v1.cpython-39.pyc
+2025/best_model_checkpoint.pt
+2025/lightning_logs/version_0/hparams.yaml
+2025/lightning_logs/version_1/checkpoints/best-epoch=38-val_acc=0.8627.ckpt
+2025/lightning_logs/version_1/hparams.yaml
+2025/lightning_logs/version_1/metrics.csv
+2025/training_history.csv
+2025/Untitled.ipynb
