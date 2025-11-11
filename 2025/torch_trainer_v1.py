@@ -483,7 +483,7 @@ def fit_with_profiler(
     accumulation_steps: int = 1,
     verbose: bool = True,
     profile: bool = True,
-    profile_dir: str = "",
+    profile_dir: str = "./log",
 ):
     assert mode in ("max", "min")
     assert monitor_metric in list(metrics.keys()) + ["loss"], "Invalid monitor_metric"
