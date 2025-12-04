@@ -15337,3 +15337,11 @@ anaconda_projects/db/project_filebrowser.db
 2025/WS/__pycache__/torch_trainer.cpython-39.pyc
 2025/WS/.ipynb_checkpoints/torch_trainer-checkpoint.py
 2025/WS/.ipynb_checkpoints/test-checkpoint.ipynb
+2025/WS/data/cifar-10-batches-py/batches.meta
+2025/WS/data/cifar-10-batches-py/data_batch_1
+2025/WS/data/cifar-10-batches-py/data_batch_2
+2025/WS/data/cifar-10-batches-py/data_batch_3
+2025/WS/data/cifar-10-batches-py/data_batch_4
+2025/WS/data/cifar-10-batches-py/data_batch_5
+2025/WS/data/cifar-10-batches-py/readme.html
+2025/WS/data/cifar-10-batches-py/test_batch
