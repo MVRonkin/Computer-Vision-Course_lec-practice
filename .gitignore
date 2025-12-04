@@ -15345,3 +15345,8 @@ anaconda_projects/db/project_filebrowser.db
 2025/WS/data/cifar-10-batches-py/data_batch_5
 2025/WS/data/cifar-10-batches-py/readme.html
 2025/WS/data/cifar-10-batches-py/test_batch
+2025/WS/best_model_checkpoint.pt
+2025/WS/.ipynb_checkpoints/Untitled-checkpoint.ipynb
+2025/WS/.ipynb_checkpoints/torch_trainer_v1-checkpoint.py
+2025/WS/data/pets/images.tar.gz
+2025/WS/training_history.csv
