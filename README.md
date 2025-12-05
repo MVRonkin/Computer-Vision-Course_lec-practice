@@ -45,8 +45,9 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [deepschool blog CV](https://blog.deepschool.ru/category/cv/)
 * [MIT Foundation of CV](https://visionbook.mit.edu/)
 * [stanford cs231n 2025 CV](https://cs231n.stanford.edu/slides/2025/)
+* [hyper.ai (paperwithcode)](https://hyper.ai/en/sota)
 
-  еще более доп. лит.
+еще более доп. лит.
 * [курс по дифузионкам](https://arxiv.org/pdf/2406.08929)
 * [pytorch-gradcam-book](https://jacobgil.github.io/pytorch-gradcam-book/introduction.html)
 * [VLM 2025 blogpost HF](https://huggingface.co/blog/vlms-2025)
@@ -57,6 +58,11 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [CVRocket]https://github.com/gracikk-ds/cv-rocket)
 * [CVEpam](https://github.com/gracikk-ds/cv-epam-course)
 * [Vit project](https://github.com/sovit-123/vision_transformers)
-* [Vit=pytorch](https://github.com/lucidrains/vit-pytorch)
 * [Vae blog](https://rohitbandaru.github.io/blog/VAEs/)
 
+
+инструменты
+* [AlbumentationsX  - новая версия библиотеки Albumentation](https://github.com/albumentations-team/AlbumentationsX)
+* [Vit=pytorch - библа о ViT](https://github.com/lucidrains/vit-pytorch)
+* [lightly - библиотека для SSL](https://docs.lightly.ai/self-supervised-learning/index.html)
+* [skorch - high api  в стиле sklearn для торч](https://github.com/skorch-dev/skorch)
