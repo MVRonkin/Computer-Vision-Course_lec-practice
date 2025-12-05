@@ -17,8 +17,9 @@
 <li>1.6.	Использование архитектур-трансформеров в компьютерном зрении</li>
 <li>1.7.	Решение задач семантической сегментации</li>
 <li>1.8.	Решение задач обнаружения объектов и связанных задач</li>
-<li>1.9.	Использование генеративных подходов в компьютерном зрении.</li>
+<li>1.9.	Базисные и другие современные модели для компьютерного зрения.</li>
 </ul>
+<br>
 
 2.	материалов практик в формате ipynb по следующим темам<ul>
 <li>2.1.	Использование методов цифровой обработки изображений в решении задач компьютерного зрения.</li>
@@ -35,3 +36,34 @@
 
 3.	итогового задания 
 https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/README.md 
+
+доп.литература
+* [Глубокое обучение Китов В.](https://deepmachinelearning.ru/docs/Neural-networks/book-title)
+* [Учебник по машинному обучению. Разделы по DeepLearning](https://education.yandex.ru/handbook/)
+* [Нейронные сети и их применение в научных исследованиях. Курс МГУ разделы про CV](https://msu.ai/programme) + [GitHub](https://github.com/EPC-MSU/EduNet-lectures)
+* [d2l Dive into Deep Learning. 7,8,14 Chapters](https://d2l.ai/)
+* [Deep_learning_school МФТИ](https://github.com/deouron/Deep_learning_school/tree/main)
+* [deepschool blog CV](https://blog.deepschool.ru/category/cv/)
+* [MIT Foundation of CV](https://visionbook.mit.edu/)
+* [stanford cs231n 2025 CV](https://cs231n.stanford.edu/slides/2025/)
+* [hyper.ai (paperwithcode)](https://hyper.ai/en/sota)
+
+еще более доп. лит.
+* [курс по дифузионкам](https://arxiv.org/pdf/2406.08929)
+* [pytorch-gradcam-book](https://jacobgil.github.io/pytorch-gradcam-book/introduction.html)
+* [VLM 2025 blogpost HF](https://huggingface.co/blog/vlms-2025)
+* [roboflow notebooks collection](https://github.com/roboflow/notebooks/tree/main/notebooks)
+* [yandex blog VLM](https://habr.com/ru/companies/yandex/articles/904584/) и [тут](https://habr.com/ru/companies/yandex/articles/847706/) и [от МТС](https://habr.com/ru/companies/ru_mts/articles/944942/) и [тут](https://habr.com/ru/companies/yandex/articles/886466/)
+* [Transformers Tutorials](https://github.com/NielsRogge/Transformers-Tutorials)
+* [DLSchool](https://github.com/gracikk-ds/DeepLearningSchool)
+* [CVRocket]https://github.com/gracikk-ds/cv-rocket)
+* [CVEpam](https://github.com/gracikk-ds/cv-epam-course)
+* [Vit project](https://github.com/sovit-123/vision_transformers)
+* [Vae blog](https://rohitbandaru.github.io/blog/VAEs/)
+
+
+инструменты
+* [AlbumentationsX  - новая версия библиотеки Albumentation](https://github.com/albumentations-team/AlbumentationsX)
+* [Vit=pytorch - библа о ViT](https://github.com/lucidrains/vit-pytorch)
+* [lightly - библиотека для SSL](https://docs.lightly.ai/self-supervised-learning/index.html)
+* [skorch - high api  в стиле sklearn для торч](https://github.com/skorch-dev/skorch)
