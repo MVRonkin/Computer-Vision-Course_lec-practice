@@ -35,3 +35,11 @@
 
 3.	итогового задания 
 https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/README.md 
+
+доп.литература
+* [Глубокое обучение Китов В.](https://deepmachinelearning.ru/docs/Neural-networks/book-title)
+* [Учебник по машинному обучению. Разделы по DeepLearning](https://education.yandex.ru/handbook/)
+* [Нейронные сети и их применение в научных исследованиях. Курс МГУ разделы про CV](https://msu.ai/programme) + [GitHub](https://github.com/EPC-MSU/EduNet-lectures)
+* [d2l Dive into Deep Learning. 7,8,14 Chapters](https://d2l.ai/)
+* [Deep_learning_school МФТИ](https://github.com/deouron/Deep_learning_school/tree/main)
+* [deepschool blog CV](https://blog.deepschool.ru/category/cv/)
