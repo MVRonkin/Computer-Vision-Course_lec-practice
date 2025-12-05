@@ -43,3 +43,20 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [d2l Dive into Deep Learning. 7,8,14 Chapters](https://d2l.ai/)
 * [Deep_learning_school МФТИ](https://github.com/deouron/Deep_learning_school/tree/main)
 * [deepschool blog CV](https://blog.deepschool.ru/category/cv/)
+* [MIT Foundation of CV](https://visionbook.mit.edu/)
+* [stanford cs231n 2025 CV](https://cs231n.stanford.edu/slides/2025/)
+
+  еще более доп. лит.
+* [курс по дифузионкам](https://arxiv.org/pdf/2406.08929)
+* [pytorch-gradcam-book](https://jacobgil.github.io/pytorch-gradcam-book/introduction.html)
+* [VLM 2025 blogpost HF](https://huggingface.co/blog/vlms-2025)
+* [roboflow notebooks collection](https://github.com/roboflow/notebooks/tree/main/notebooks)
+* [yandex blog VLM](https://habr.com/ru/companies/yandex/articles/904584/) и [тут](https://habr.com/ru/companies/yandex/articles/847706/) и [от МТС](https://habr.com/ru/companies/ru_mts/articles/944942/) и [тут](https://habr.com/ru/companies/yandex/articles/886466/)
+* [Transformers Tutorials](https://github.com/NielsRogge/Transformers-Tutorials)
+* [DLSchool](https://github.com/gracikk-ds/DeepLearningSchool)
+* [CVRocket]https://github.com/gracikk-ds/cv-rocket)
+* [CVEpam](https://github.com/gracikk-ds/cv-epam-course)
+* [Vit project](https://github.com/sovit-123/vision_transformers)
+* [Vit=pytorch](https://github.com/lucidrains/vit-pytorch)
+* [Vae blog](https://rohitbandaru.github.io/blog/VAEs/)
+
