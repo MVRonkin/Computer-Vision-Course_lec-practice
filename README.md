@@ -47,6 +47,7 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [MIT Foundation of CV](https://visionbook.mit.edu/)
 * [stanford cs231n 2025 CV](https://cs231n.stanford.edu/slides/2025/)
 * [hyper.ai (paperwithcode)](https://hyper.ai/en/sota)
+* [F.Shole Deep learning with python](https://deeplearningwithpython.io/chapters/) and [github](https://github.com/fchollet/deep-learning-with-python-notebooks)
 
 еще более доп. лит.
 * [курс по дифузионкам](https://arxiv.org/pdf/2406.08929)
