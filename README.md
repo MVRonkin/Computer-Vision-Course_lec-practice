@@ -60,6 +60,7 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [CVEpam](https://github.com/gracikk-ds/cv-epam-course)
 * [Vit project](https://github.com/sovit-123/vision_transformers)
 * [Vae blog](https://rohitbandaru.github.io/blog/VAEs/)
+* [NVidea DeepLearning Examples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch)
 
 
 инструменты
