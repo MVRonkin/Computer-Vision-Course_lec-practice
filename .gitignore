@@ -41223,3 +41223,5 @@ anaconda_projects/db/project_filebrowser.db
 .virtual_documents/2025/WS/test.ipynb
 .virtual_documents/2025/WS/WS7_Semantic Segmentation.ipynb
 .virtual_documents/2025/WS/test.ipynb
+2025/WS/.ipynb_checkpoints/WS6_Tricks_In_Train-checkpoint.ipynb
+2025/WS/__pycache__/torch_trainer.cpython-312.pyc
