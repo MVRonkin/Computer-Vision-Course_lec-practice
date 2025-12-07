@@ -8,7 +8,9 @@ import torch.backends.cudnn as cudnn
 import pandas as pd
 import time
 from pathlib import Path
-
+import timm
+import torch.nn as nn
+from tqdm.auto import tqdm
 
 def setup_experiment(
     seed: int = 42,
@@ -47,36 +49,85 @@ def setup_experiment(
     return device
 
 
+
+def init_classifier(m):
+    if isinstance(m, (nn.Linear, nn.Conv2d)):
+        # Инициализация весов нормальным распределением
+        nn.init.normal_(m.weight, mean=0.0, std=0.01)
+        if m.bias is not None:
+            # Инициализация смещения нулями
+            nn.init.constant_(m.bias, 0)
+    elif isinstance(m, (nn.BatchNorm1d, nn.BatchNorm2d, nn.LayerNorm)):
+        # Инициализация gamma (weight) = 1 и beta (bias) = 0
+        if m.weight is not None:
+            nn.init.ones_(m.weight)
+        if m.bias is not None:
+            nn.init.zeros_(m.bias)
+            
 class EMA:
+    """
+    Класс для реализации Exponential Moving Average (EMA) для параметров модели PyTorch.
+
+    EMA помогает улучшить устойчивость и качество модели во время обучения,
+    усредняя параметры модели с использованием экспоненциального скользящего среднего.
+    Это особенно полезно в задачах, где важно избежать переобучения или улучшить сходимость.
+    """
+
     def __init__(self, model, decay=0.999):
+        """
+        Инициализирует EMA для заданной модели.
+
+        Args:
+            model (torch.nn.Module): PyTorch-модель, для которой будет вычисляться EMA.
+            decay (float, optional): Коэффициент затухания для EMA. По умолчанию 0.999.
+                                     Чем ближе к 1, тем сильнее усреднение (меньше влияние новых параметров).
+        """
         self.model = model
         self.decay = decay
-        self.shadow = {}
-        self.backup = {}
+        self.shadow = {}  # Словарь для хранения EMA значений параметров
+        self.backup = {}  # Словарь для временного хранения оригинальных значений (например, при валидации)
         self.register()
 
     def register(self):
+        """
+        Инициализирует словарь self.shadow, копируя текущие значения обучаемых параметров модели.
+        Вызывается один раз при создании экземпляра EMA.
+        """
         for name, param in self.model.named_parameters():
             if param.requires_grad:
                 self.shadow[name] = param.data.clone()
 
     def update(self):
+        """
+        Обновляет EMA значения параметров модели.
+        Вызывается после каждого шага оптимизации (обычно после optimizer.step()).
+        """
         for name, param in self.model.named_parameters():
             if param.requires_grad:
+                # Обновляем EMA: новое значение = (1 - коэффициент) * текущее + коэффициент * старое_среднее
                 self.shadow[name] = (1.0 - self.decay) * param.data + self.decay * self.shadow[name]
 
     def apply_shadow(self):
+        """
+        Применяет EMA значения параметров к модели.
+        Полезно перед оценкой модели (валидацией или тестом), чтобы использовать усреднённые параметры.
+        Оригинальные параметры сохраняются в self.backup.
+        """
         for name, param in self.model.named_parameters():
             if param.requires_grad:
-                self.backup[name] = param.data.clone()
-                param.data = self.shadow[name]
+                self.backup[name] = param.data.clone()  # Сохраняем оригинальные значения
+                param.data = self.shadow[name]  # Применяем EMA
 
     def restore(self):
+        """
+        Восстанавливает оригинальные значения параметров модели из self.backup.
+        Обычно вызывается после apply_shadow(), чтобы вернуть модель к её текущему обученному состоянию.
+        """
         for name, param in self.model.named_parameters():
             if param.requires_grad:
-                param.data = self.backup[name]
+                param.data = self.backup[name]  # Восстанавливаем оригинальные значения
 
-from tqdm.auto import tqdm
+
 
 def train_epoch(model, dataloader, optimizer, criterion, metrics, device, *,
                 use_amp=False, grad_clip=None, ema=None, accumulation_steps=1):
@@ -341,7 +392,13 @@ def fit(
                 score = val_loss if monitor_metric == "loss" else val_metrics[monitor_metric]
                 scheduler.step(score)
             else:
-                scheduler.step()
+                # scheduler.step()
+                if isinstance(scheduler, timm.scheduler.scheduler.Scheduler):
+                    # timm-овский планировщик, требует номер эпохи c 1
+                    scheduler.step(epoch + 1)
+                else:
+                    # Стандартный PyTorch-планировщик, вызывается без аргументов
+                    scheduler.step()
 
         # --- Logging ---
         lr = optimizer.param_groups[0]["lr"]
