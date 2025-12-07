@@ -47,6 +47,8 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [MIT Foundation of CV](https://visionbook.mit.edu/)
 * [stanford cs231n 2025 CV](https://cs231n.stanford.edu/slides/2025/)
 * [hyper.ai (paperwithcode)](https://hyper.ai/en/sota)
+* [F.Shole Deep learning with python](https://deeplearningwithpython.io/chapters/) and [github](https://github.com/fchollet/deep-learning-with-python-notebooks)
+* 
 
 еще более доп. лит.
 * [курс по дифузионкам](https://arxiv.org/pdf/2406.08929)
@@ -60,6 +62,12 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [CVEpam](https://github.com/gracikk-ds/cv-epam-course)
 * [Vit project](https://github.com/sovit-123/vision_transformers)
 * [Vae blog](https://rohitbandaru.github.io/blog/VAEs/)
+* [NVidea DeepLearning Examples](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch)
+* [DL for Vision 2020](https://sif-dlv.github.io/)
+* [DL for CV book](https://download.e-bookshelf.de/download/0014/4806/95/L-G-0014480695-0052209288.pdf)
+* [prgoram history cv](https://programminghistorian.org/en/lessons/computer-vision-deep-learning-pt1)
+* [deep_learning_tutorial_iciap](https://www.ee.cuhk.edu.hk/~xgwang/deep_learning_tutorial_iciap.pdf)
+* [mit cv dl](https://introtodeeplearning.com/2019/materials/2019_6S191_L3.pdf)
 
 
 инструменты
