@@ -8,15 +8,17 @@
 
   | № | Раздел| Содержание | ссылка на лекцию  | ссылка на практику   | Контрольное мероприятие  |
 | - | ------- | ---------- | ----------------- | -------------------- | ------------------------ |
-| 1.  
-| Введение в предмет компьютерное зрение 
-| Задачи компьютерного зрения, понятие и особенности цифровых изображений, понятие признаки в компьютерном зрении, понятие свертка в цифровой обработке изображений.
+| 1. | Введение в предмет компьютерное зрение | Задачи компьютерного зрения, понятие и особенности цифровых изображений, понятие признаки в компьютерном зрении, понятие свертка в цифровой обработке изображений.
 <br>Обзор алгоритмов предобработки изображений: построение фильтров размытия, резкости и  выделения границ,  
 бинаризация изображений, нелинейные фильтры<br>Построение последовательностей предобработки изображений в OpenCV
 <br>Сравнение библиотек работы с изображениями<br>   
 | [GitHub 1](https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/LEC/01%20%D0%92%D0%B2%D0%B5%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%B2%20%D0%BA%D0%BE%D0%BC%D0%BF%D1%8C%D1%8E%D1%82%D0%B5%D1%80%D0%BD%D0%BE%D0%B5%20%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5.pptx), 
 [GitHub 2](https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/LEC/02%20%D0%9F%D0%BE%D0%BD%D1%8F%D1%82%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B8%D0%B7%D0%BD%D0%B0%D0%BA%20%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F.pptx) |  [GitHub](https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/WS/WS1_Classic_into_PyTorch.ipynb),
    [GitHub 2](https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/WS/WS2_Augment_CNNLayer.ipynb) |-       |
+
+
+
+   
 | 2.  
 | Современное состояние сверточных нейронных сетей в задачах компьютерного зрения. 
 | Внутренняя структура и особенности обучения сверточной нейронной сети ResNet<br>Сверточные сети семейства ResNet: ResNeXt, Xception, BIT, DenseNet, ResNet-D, NFNet, Step By Step network<br>Построение и дообучение сверточных нейронных сетей в PyTorch + torchvision с применением backbone сетей семейства ResNet: training pipeline, transfer learning, функции потерь и метрики обучения, анализ результатов обучения.<br>Решение задачи компьютерного зрения с использованием дообученных моделей<br>                       | [GitHub](https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/LEC/04%20%D0%9F%D1%80%D0%B8%D0%BD%D1%86%D0%B8%D0%BF%D1%8B%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B%20%D1%81%D0%B2%D0%B5%D1%80%D1%82%D0%BE%D1%87%D0%BD%D1%8B%D1%85%20%D0%BD%D0%B5%D0%B9%D1%80%D0%BE%D0%BD%D0%BD%D1%8B%D1%85%20%D1%81%D0%B5%D1%82%D0%B5%D0%B9.pptx) 
