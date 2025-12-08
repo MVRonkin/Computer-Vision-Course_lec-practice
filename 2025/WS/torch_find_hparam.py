@@ -229,325 +229,523 @@ def lr_finder(model, train_loader, optimizer, criterion, start_lr=1e-7, end_lr=1
         plt.show()
     
     return lrs, losses, best_lr
-    
-def batch_size_finder(model, train_loader, optimizer_class, criterion, initial_batch_size=32,
-                      max_batch_size=512, growth_factor=1.5, num_steps_per_batch=10,
-                      device='cuda', use_amp=False, verbose=True, plot=True, 
-                      target_metric='throughput'):
+
+
+def warmup_finder(model, train_loader, optimizer, criterion, 
+                  base_lr, warmup_epochs=5, num_batches=None,
+                  warmup_method='linear', device='cuda',
+                  accumulation_steps=1, use_amp=False, 
+                  verbose=True, plot=True):
     """
-    Определение оптимального размера батча для больших моделей.
+    Поиск оптимальной стратегии warmup для обучения модели.
 
     Parameters:
     - model: torch.nn.Module
-    - train_loader: torch.utils.data.DataLoader (с малым batch_size)
-    - optimizer_class: класс оптимизатора (например, torch.optim.Adam)
+    - train_loader: torch.utils.data.DataLoader
+    - optimizer: torch.optim.Optimizer
     - criterion: loss function
-    - initial_batch_size: начальный размер батча для тестирования
-    - max_batch_size: максимальный размер батча для тестирования
-    - growth_factor: множитель увеличения batch_size
-    - num_steps_per_batch: количество шагов для оценки каждого batch_size
+    - base_lr: базовая скорость обучения (после warmup)
+    - warmup_epochs: количество эпох warmup
+    - num_batches: количество батчей для анализа (None для всех в warmup эпохах)
+    - warmup_method: 'linear', 'exp', 'cosine' - метод увеличения LR
     - device: устройство ('cuda' или 'cpu')
+    - accumulation_steps: количество шагов накопления градиентов
     - use_amp: использовать автоматическое масштабирование точности (AMP)
     - verbose: выводить прогресс
     - plot: строить график
-    - target_metric: целевая метрика ('throughput' или 'stability')
 
     Returns:
-    - batch_sizes: список протестированных размеров батча
-    - metrics: список значений метрики (throughput или loss stability)
-    - optimal_batch_size: оптимальный размер батча
+    - epochs: список эпох
+    - losses: список значений loss
+    - lrs: список скоростей обучения
+    - optimal_warmup_epochs: рекомендуемое количество эпох warmup
 
-        
-    Улучшения для функции batch_size_finder:
+    Улучшения для функции warmup_finder:
     
-    1. **Проверка на OOM:** Предварительная проверка возможности использования batch_size
-    2. **Многокритериальная оптимизация:** Учет throughput, стабильности и потребления памяти
-    3. **Поддержка AMP:** Учет автоматического масштабирования точности
-    4. **Гибкая целевая метрика:** Возможность выбора между производительностью и стабильностью
-    5. **Комплексная визуализация:** Графики для всех ключевых метрик
-    6. **Оптимизация памяти:** Очистка временных моделей и данных после каждой итерации
+    1. **Оптимизации памяти:**
+       - Градиентное накопление (--accumulation_steps)
+       - AMP для уменьшения использования памяти
+       - Очистка кэша CUDA после завершения
     
-    Дополнительные рекомендации:
-    - Для очень больших моделей можно использовать gradient accumulation вместо большого batch_size
-    - Рассмотреть использование progressive resizing (постепенное увеличение размера изображений)
-    - При использовании large batch_size может потребоваться корректировка learning rate (Linear Scaling Rule)
-    - Для распределенного обучения оптимальный глобальный batch_size может отличаться
-
+    2. **Гибкие методы warmup:**
+       - Линейное, экспоненциальное, косинусное увеличение LR
+       - Возможность анализа на подмножестве данных
+    
+    3. **Быстрый анализ:**
+       - Фокус на первые эпохи обучения
+       - Определение точки стабилизации loss
+       - Минимальные вычисления
+    
+    4. **Улучшенная визуализация:**
+       - Отображение фазы warmup
+       - Настройка стиля сетки
+       - Логарифмическая шкала для LR
     """
     
-    # Проверка на CUDA OOM ошибки
-    def test_batch_size(batch_size, num_steps=5):
-        """Тестирование возможности использования заданного batch_size."""
-        try:
-            # Создание временной модели и оптимизатора
-            temp_model = type(model)(**model.__init__.__code__.co_consts[0]) \
-                        if hasattr(model, '__init__') else model
-            temp_model = nn.Sequential(*list(model.children())[:2]).to(device) if len(list(model.children())) > 1 else model.to(device)
-            temp_model.eval()
-            
-            # Создание фиктивных данных
-            sample_input = torch.randn(batch_size, *next(iter(train_loader))[0].shape[1:]).to(device)
-            sample_target = torch.randint(0, model.fc.out_features if hasattr(model, 'fc') else 10, 
-                                        (batch_size,)).to(device)
-            
-            # Тестовый проход
-            with autocast() if use_amp else nullcontext():
-                with torch.no_grad():
-                    output = temp_model(sample_input)
-                    loss = criterion(output, sample_target)
-            
-            del sample_input, sample_target, output, loss
-            if hasattr(temp_model, 'module'):
-                del temp_model.module
-            del temp_model
-            torch.cuda.empty_cache()
-            return True
-            
-        except RuntimeError as e:
-            if 'out of memory' in str(e):
-                return False
-            else:
-                raise e
+    # Проверяем доступность AMP для соответствующего устройства
+    if use_amp and device != 'cuda':
+        print(f"AMP доступен только для CUDA, но указано устройство: {device}. Устанавливаем use_amp=False")
+        use_amp = False
     
-    # Оценка производительности для заданного batch_size
-    def evaluate_batch_size(batch_size, num_steps=num_steps_per_batch):
-        """Оценка метрик для заданного размера батча."""
-        # Создание модели и оптимизатора
-        temp_model = type(model)(**{k: v for k, v in model.__dict__.items() 
-                                  if not k.startswith('_')}).to(device) \
-                    if hasattr(model, '__dict__') else model.to(device)
-        temp_optimizer = optimizer_class(temp_model.parameters(), lr=1e-3)
-        temp_model.train()
-        
-        scaler = GradScaler() if use_amp else None
-        
-        times = []
-        losses = []
-        memory_usages = []
-        
-        # Итератор данных
-        data_iter = iter(train_loader)
-        
-        for step in range(num_steps):
-            try:
-                # Сборка батча нужного размера
-                inputs_batch = []
-                targets_batch = []
-                
-                count = 0
-                while count < batch_size:
-                    try:
-                        inputs, targets = next(data_iter)
-                        inputs, targets = inputs.to(device), targets.to(device)
-                        
-                        # Добавляем части в батч
-                        needed = batch_size - count
-                        if len(inputs) >= needed:
-                            inputs_batch.append(inputs[:needed])
-                            targets_batch.append(targets[:needed])
-                            count += needed
-                        else:
-                            inputs_batch.append(inputs)
-                            targets_batch.append(targets)
-                            count += len(inputs)
-                    except StopIteration:
-                        data_iter = iter(train_loader)
-                        continue
-                
-                # Конкатенация в один батч
-                inputs = torch.cat(inputs_batch, dim=0)[:batch_size]
-                targets = torch.cat(targets_batch, dim=0)[:batch_size]
-                
-                if len(inputs) < batch_size:
-                    # Дополнение до нужного размера (если нужно)
-                    pad_size = batch_size - len(inputs)
-                    inputs = torch.cat([inputs, inputs[:pad_size]], dim=0)
-                    targets = torch.cat([targets, targets[:pad_size]], dim=0)
-                
-            except Exception:
-                # Если данные закончились, используем последний батч
-                continue
+    if use_amp:
+        from torch.amp import GradScaler, autocast
+    else:
+        from contextlib import nullcontext
+        autocast = lambda: nullcontext()
+    
+    import gc
+    
+    # Сохраняем исходное состояние оптимизатора
+    original_state = optimizer.state_dict()
+    original_lr = optimizer.param_groups[0]['lr']
+    
+    # Инициализация AMP scaler для CUDA
+    scaler = GradScaler(device=device) if use_amp else None
+    
+    # Подготовка модели
+    model.train()
+    model.to(device)
+    
+    # Списки для хранения результатов
+    epochs = []
+    losses = []
+    lrs = []
+    batch_count = 0
+    max_batches = num_batches if num_batches else float('inf')
+    
+    # Вычисление общего количества батчей для warmup
+    total_batches = len(train_loader) * warmup_epochs
+    if num_batches:
+        total_batches = min(total_batches, num_batches)
+    
+    # Основной цикл
+    for epoch in range(warmup_epochs):
+        if batch_count >= max_batches:
+            break
             
-            # Измерение времени
-            start_time = time.time()
+        for inputs, targets in train_loader:
+            if batch_count >= max_batches:
+                break
+                
+            inputs, targets = inputs.to(device), targets.to(device)
             
-            # Прямой проход
-            context = autocast() if use_amp else nullcontext()
-            with context:
-                outputs = temp_model(inputs)
+            # Вычисление текущего LR в зависимости от метода
+            progress = batch_count / total_batches
+            if warmup_method == 'linear':
+                current_lr = base_lr * progress
+            elif warmup_method == 'exp':
+                current_lr = base_lr * (progress ** 2) if progress > 0 else 1e-8
+            elif warmup_method == 'cosine':
+                current_lr = base_lr * (1 - np.cos(progress * np.pi)) / 2
+            else:
+                raise ValueError("warmup_method должен быть 'linear', 'exp' или 'cosine'")
+            
+            # Убедимся, что LR не слишком мал
+            current_lr = max(current_lr, 1e-8)
+            
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = current_lr
+            
+            # Прямой проход с AMP
+            if use_amp:
+                with autocast(device_type=device):
+                    outputs = model(inputs)
+                    loss = criterion(outputs, targets)
+                    
+                    # Нормализация loss при градиентном накоплении
+                    loss = loss / accumulation_steps
+            else:
+                outputs = model(inputs)
                 loss = criterion(outputs, targets)
+                
+                # Нормализация loss при градиентном накоплении
+                loss = loss / accumulation_steps
             
             # Обратный проход
-            temp_optimizer.zero_grad()
             if use_amp:
                 scaler.scale(loss).backward()
-                scaler.step(temp_optimizer)
-                scaler.update()
             else:
                 loss.backward()
-                temp_optimizer.step()
             
-            # Измерение времени и памяти
-            end_time = time.time()
-            times.append(end_time - start_time)
-            losses.append(loss.item())
+            # Обновление параметров каждые accumulation_steps
+            if (batch_count + 1) % accumulation_steps == 0:
+                if use_amp:
+                    scaler.step(optimizer)
+                    scaler.update()
+                else:
+                    optimizer.step()
+                optimizer.zero_grad()
             
-            if device == 'cuda':
-                memory_usages.append(torch.cuda.memory_allocated(device))
-            
-        # Очистка
-        del temp_model, temp_optimizer
-        if scaler:
-            del scaler
-        torch.cuda.empty_cache()
-        
-        # Вычисление метрик
-        avg_time = np.mean(times)
-        throughput = batch_size / avg_time if avg_time > 0 else 0
-        loss_std = np.std(losses)
-        avg_memory = np.mean(memory_usages) if memory_usages else 0
-        
-        return {
-            'throughput': throughput,
-            'loss_std': loss_std,
-            'time_per_batch': avg_time,
-            'avg_loss': np.mean(losses),
-            'memory_usage': avg_memory
-        }
-    
-    # Генерация последовательности размеров батча
-    batch_sizes = []
-    current_batch_size = initial_batch_size
-    
-    while current_batch_size <= max_batch_size:
-        if test_batch_size(int(current_batch_size)):
-            batch_sizes.append(int(current_batch_size))
-        current_batch_size *= growth_factor
-    
-    if verbose:
-        print(f"Testing batch sizes: {batch_sizes}")
-    
-    # Оценка метрик для каждого размера батча
-    results = []
-    metrics_values = {'throughput': [], 'stability': [], 'memory': []}
-    
-    for i, batch_size in enumerate(batch_sizes):
-        if verbose:
-            print(f"Testing batch_size: {batch_size}")
-        
-        try:
-            metrics = evaluate_batch_size(batch_size)
-            results.append({
-                'batch_size': batch_size,
-                'metrics': metrics
-            })
-            
-            metrics_values['throughput'].append(metrics['throughput'])
-            metrics_values['stability'].append(1.0 / (metrics['loss_std'] + 1e-8))  # Обратное значение для стабильности
-            metrics_values['memory'].append(metrics['memory_usage'] / 1024**3)  # в GB
-            
-            if verbose:
-                print(f"  Throughput: {metrics['throughput']:.2f} samples/sec")
-                print(f"  Loss std: {metrics['loss_std']:.4f}")
-                print(f"  Memory usage: {metrics['memory_usage'] / 1024**3:.2f} GB")
-                
-        except RuntimeError as e:
-            if 'out of memory' in str(e):
-                if verbose:
-                    print(f"  Batch size {batch_size} caused OOM, stopping...")
-                break
+            # Обработка loss
+            if use_amp:
+                current_loss = loss.item() * accumulation_steps
             else:
-                raise e
+                current_loss = loss.item()
+            
+            epochs.append(epoch + batch_count / len(train_loader))
+            losses.append(current_loss)
+            lrs.append(current_lr)
+            
+            # Вывод прогресса
+            if verbose and batch_count % max(1, total_batches // 10) == 0:
+                print(f"Batch {batch_count}/{total_batches}, LR: {current_lr:.2e}, Loss: {current_loss:.4f}")
+            
+            batch_count += 1
     
-    if not results:
-        raise RuntimeError("No batch size could be tested successfully - all caused OOM")
+    # Определение оптимального количества эпох warmup
+    # Ищем точку, после которой loss стабилизируется
+    losses_array = np.array(losses)
     
-    # Определение оптимального размера батча
-    batch_sizes_tested = [r['batch_size'] for r in results]
-    throughputs = [r['metrics']['throughput'] for r in results]
-    stabilities = [1.0 / (r['metrics']['loss_std'] + 1e-8) for r in results]
+    # Простой метод: найти точку с минимальным loss
+    min_loss_idx = np.argmin(losses_array)
+    optimal_epoch = epochs[min_loss_idx]
     
-    if target_metric == 'throughput':
-        # Максимизация throughput с учетом ограничений на стабильность
-        # Ищем баланс между высокой производительностью и приемлемой стабильностью
-        normalized_throughput = (np.array(throughputs) - np.min(throughputs)) / (np.max(throughputs) - np.min(throughputs) + 1e-8)
-        normalized_stability = (np.array(stabilities) - np.min(stabilities)) / (np.max(stabilities) - np.min(stabilities) + 1e-8)
+    # Более умный метод: найти точку стабилизации
+    window_size = max(1, len(losses_array) // 10)
+    if len(losses_array) > window_size:
+        # Вычисляем скользящее среднее
+        from scipy.ndimage import uniform_filter1d
+        smoothed_losses = uniform_filter1d(losses_array, size=window_size, mode='nearest')
         
-        # Взвешенная комбинация: 70% throughput, 30% stability
-        combined_score = 0.7 * normalized_throughput + 0.3 * normalized_stability
-        optimal_idx = np.argmax(combined_score)
-        
-    elif target_metric == 'stability':
-        # Максимизация стабильности с минимальным падением throughput
-        optimal_idx = np.argmax(stabilities)
-        # Но проверяем, что throughput не слишком низкий
-        min_acceptable_throughput = 0.5 * max(throughputs)  # Не ниже 50% максимума
-        valid_indices = [i for i in range(len(throughputs)) if throughputs[i] >= min_acceptable_throughput]
-        if valid_indices:
-            valid_stabilities = [stabilities[i] for i in valid_indices]
-            optimal_idx = valid_indices[np.argmax(valid_stabilities)]
+        # Находим точку с минимальным smoothed loss
+        min_smooth_idx = np.argmin(smoothed_losses)
+        optimal_epoch = epochs[min_smooth_idx]
+    else:
+        optimal_epoch = optimal_epoch
     
-    optimal_batch_size = batch_sizes_tested[optimal_idx]
+    # Преобразуем в количество эпох (округляем вверх)
+    optimal_warmup_epochs = int(np.ceil(optimal_epoch))
+    optimal_warmup_epochs = max(1, min(optimal_warmup_epochs, warmup_epochs))
     
-    # Построение графиков
+    # Восстановление исходного состояния
+    optimizer.load_state_dict(original_state)
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = original_lr
+    model.train()
+    
+    # Очистка памяти
+    if device == 'cuda':
+        torch.cuda.empty_cache()
+    gc.collect()
+    
+    # Построение графика
     if plot:
-        fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8))
         
-        # Throughput vs Batch Size
-        axes[0, 0].plot(batch_sizes_tested, throughputs, 'b-o')
-        axes[0, 0].axvline(x=optimal_batch_size, color='red', linestyle='--', 
-                          label=f'Optimal: {optimal_batch_size}')
-        axes[0, 0].set_xlabel('Batch Size')
-        axes[0, 0].set_ylabel('Throughput (samples/sec)')
-        axes[0, 0].set_title('Throughput vs Batch Size')
-        axes[0, 0].grid(True, linestyle='--', alpha=0.6)
-        axes[0, 0].legend()
+        # График loss
+        ax1.plot(epochs, losses, label='Training Loss', color='blue')
+        ax1.set_xlabel('Epoch')
+        ax1.set_ylabel('Loss')
+        ax1.set_title('Warmup Analysis - Loss')
+        ax1.grid(True, linestyle='--', alpha=0.6)
         
-        # Loss Stability vs Batch Size
-        axes[0, 1].plot(batch_sizes_tested, [1/x if x > 0 else float('inf') for x in [r['metrics']['loss_std'] for r in results]], 'g-o')
-        axes[0, 1].axvline(x=optimal_batch_size, color='red', linestyle='--',
-                          label=f'Optimal: {optimal_batch_size}')
-        axes[0, 1].set_xlabel('Batch Size')
-        axes[0, 1].set_ylabel('Stability (1/loss_std)')
-        axes[0, 1].set_title('Loss Stability vs Batch Size')
-        axes[0, 1].grid(True, linestyle='--', alpha=0.6)
-        axes[0, 1].legend()
+        # Добавляем вертикальную линию в оптимальную точку
+        ax1.axvline(x=optimal_epoch, color='red', linestyle='--', 
+                   label=f'Optimal: {optimal_epoch:.1f} epochs')
+        ax1.legend()
         
-        # Memory Usage vs Batch Size
-        memory_gb = [r['metrics']['memory_usage'] / 1024**3 for r in results]
-        axes[1, 0].plot(batch_sizes_tested, memory_gb, 'r-o')
-        axes[1, 0].axvline(x=optimal_batch_size, color='red', linestyle='--',
-                          label=f'Optimal: {optimal_batch_size}')
-        axes[1, 0].set_xlabel('Batch Size')
-        axes[1, 0].set_ylabel('GPU Memory (GB)')
-        axes[1, 0].set_title('Memory Usage vs Batch Size')
-        axes[1, 0].grid(True, linestyle='--', alpha=0.6)
-        axes[1, 0].legend()
-        
-        # Combined Score
-        axes[1, 1].plot(batch_sizes_tested, combined_score if target_metric == 'throughput' else normalized_stability, 'm-o')
-        axes[1, 1].axvline(x=optimal_batch_size, color='red', linestyle='--',
-                          label=f'Optimal: {optimal_batch_size}')
-        axes[1, 1].set_xlabel('Batch Size')
-        axes[1, 1].set_ylabel('Combined Score')
-        axes[1, 1].set_title(f'Optimization Target: {target_metric}')
-        axes[1, 1].grid(True, linestyle='--', alpha=0.6)
-        axes[1, 1].legend()
+        # График LR
+        ax2.plot(epochs, lrs, label='Learning Rate', color='orange')
+        ax2.set_xlabel('Epoch')
+        ax2.set_ylabel('Learning Rate')
+        ax2.set_yscale('log')
+        ax2.set_title('Warmup Schedule')
+        ax2.grid(True, linestyle='--', alpha=0.6)
+        ax2.axvline(x=optimal_epoch, color='red', linestyle='--', 
+                   label=f'Optimal: {optimal_epoch:.1f} epochs')
+        ax2.legend()
         
         plt.tight_layout()
-        plt.suptitle('Batch Size Finder Results', fontsize=16, y=1.02)
+        plt.show()
+    
+    return epochs, losses, lrs, optimal_warmup_epochs
+
+
+# Пример вызова функции
+"""
+# Пример использования warmup_finder
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+# Создание модели и данных (пример)
+model = nn.Sequential(
+    nn.Linear(10, 50),
+    nn.ReLU(),
+    nn.Linear(50, 1)
+)
+
+# Синтетические данные
+X = torch.randn(1000, 10)
+y = torch.randn(1000, 1)
+dataset = TensorDataset(X, y)
+train_loader = DataLoader(dataset, batch_size=32, shuffle=True)
+
+# Оптимизатор и функция потерь
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
+criterion = nn.MSELoss()
+
+# Запуск поиска оптимального warmup
+base_lr = 1e-3  # Базовая скорость обучения
+epochs, losses, lrs, optimal_warmup = warmup_finder(
+    model=model,
+    train_loader=train_loader,
+    optimizer=optimizer,
+    criterion=criterion,
+    base_lr=base_lr,
+    warmup_epochs=5,
+    num_batches=200,  # Анализировать только первые 200 батчей
+    warmup_method='linear',
+    device='cuda' if torch.cuda.is_available() else 'cpu',
+    accumulation_steps=1,
+    use_amp=torch.cuda.is_available(),
+    verbose=True,
+    plot=True
+)
+
+print(f"Рекомендуемое количество эпох warmup: {optimal_warmup}")
+"""
+
+
+def weight_decay_finder(model, train_loader, optimizer, criterion, 
+                       base_lr, weight_decays=None, num_epochs=3, 
+                       device='cuda', accumulation_steps=1, use_amp=False, 
+                       verbose=True, plot=True):
+    """
+    Поиск оптимального параметра weight decay для модели.
+
+    Parameters:
+    - model: torch.nn.Module
+    - train_loader: torch.utils.data.DataLoader
+    - optimizer: torch.optim.Optimizer (должен поддерживать weight_decay)
+    - criterion: loss function
+    - base_lr: базовая скорость обучения
+    - weight_decays: список значений weight decay для тестирования (если None, используется стандартный диапазон)
+    - num_epochs: количество эпох для тестирования каждого weight decay
+    - device: устройство ('cuda' или 'cpu')
+    - accumulation_steps: количество шагов накопления градиентов
+    - use_amp: использовать автоматическое масштабирование точности (AMP)
+    - verbose: выводить прогресс
+    - plot: строить график
+
+    Returns:
+    - results: словарь с результатами {weight_decay: [losses]}
+    - optimal_wd: оптимальное значение weight decay
+    - final_losses: финальные значения loss для каждого weight decay
+
+    Улучшения для функции weight_decay_finder:
+    
+    1. **Оптимизации памяти:**
+       - Градиентное накопление (--accumulation_steps)
+       - AMP для уменьшения использования памяти
+       - Очистка кэша CUDA после завершения
+    
+    2. **Гибкие настройки:**
+       - Возможность тестирования различных значений weight decay
+       - Настраиваемое количество эпох
+       - Поддержка различных оптимизаторов
+    
+    3. **Быстрый анализ:**
+       - Сравнение нескольких значений weight decay за короткое время
+       - Определение оптимального баланса между регуляризацией и производительностью
+    
+    4. **Улучшенная визуализация:**
+       - Сравнение кривых обучения для разных weight decay
+       - Отображение оптимального значения
+       - Настройка стиля сетки
+    """
+    
+    # Проверяем доступность AMP для соответствующего устройства
+    if use_amp and device != 'cuda':
+        print(f"AMP доступен только для CUDA, но указано устройство: {device}. Устанавливаем use_amp=False")
+        use_amp = False
+    
+    if use_amp:
+        from torch.amp import GradScaler, autocast
+    else:
+        from contextlib import nullcontext
+        autocast = lambda: nullcontext()
+    
+    import gc
+    
+    # Стандартный диапазон weight decay, если не указан
+    if weight_decays is None:
+        weight_decays = [0, 1e-6, 5e-6, 1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2]
+    
+    # Сохраняем исходное состояние оптимизатора
+    original_state = optimizer.state_dict()
+    original_wd = optimizer.param_groups[0].get('weight_decay', 0)
+    
+    # Подготовка модели
+    model.train()
+    model.to(device)
+    
+    # Результаты для каждого weight decay
+    results = {}
+    final_losses = {}
+    
+    # Инициализация AMP scaler для CUDA
+    scaler = GradScaler(device=device) if use_amp else None
+    
+    for wd in weight_decays:
+        if verbose:
+            print(f"\nТестирование weight_decay: {wd}")
+        
+        # Обновляем weight decay в оптимизаторе
+        for param_group in optimizer.param_groups:
+            param_group['weight_decay'] = wd
+        
+        # Списки для хранения результатов текущего weight decay
+        epoch_losses = []
+        
+        # Тренировка на заданное количество эпох
+        for epoch in range(num_epochs):
+            epoch_loss = 0.0
+            num_batches = 0
+            
+            for inputs, targets in train_loader:
+                inputs, targets = inputs.to(device), targets.to(device)
+                
+                # Устанавливаем base_lr
+                for param_group in optimizer.param_groups:
+                    param_group['lr'] = base_lr
+                
+                # Прямой проход с AMP
+                if use_amp:
+                    with autocast(device_type=device):
+                        outputs = model(inputs)
+                        loss = criterion(outputs, targets)
+                        
+                        # Нормализация loss при градиентном накоплении
+                        loss = loss / accumulation_steps
+                else:
+                    outputs = model(inputs)
+                    loss = criterion(outputs, targets)
+                    
+                    # Нормализация loss при градиентном накоплении
+                    loss = loss / accumulation_steps
+                
+                # Обратный проход
+                if use_amp:
+                    scaler.scale(loss).backward()
+                else:
+                    loss.backward()
+                
+                # Обновление параметров каждые accumulation_steps
+                if (num_batches + 1) % accumulation_steps == 0:
+                    if use_amp:
+                        scaler.step(optimizer)
+                        scaler.update()
+                    else:
+                        optimizer.step()
+                    optimizer.zero_grad()
+                
+                # Обработка loss
+                if use_amp:
+                    current_loss = loss.item() * accumulation_steps
+                else:
+                    current_loss = loss.item()
+                
+                epoch_loss += current_loss
+                num_batches += 1
+            
+            avg_epoch_loss = epoch_loss / max(1, num_batches)
+            epoch_losses.append(avg_epoch_loss)
+            
+            if verbose:
+                print(f"  Epoch {epoch+1}/{num_epochs}, Avg Loss: {avg_epoch_loss:.4f}")
+        
+        results[wd] = epoch_losses
+        final_losses[wd] = epoch_losses[-1]  # Последнее значение loss
+    
+    # Определение оптимального weight decay
+    optimal_wd = min(final_losses, key=final_losses.get)
+    
+    # Восстановление исходного состояния
+    optimizer.load_state_dict(original_state)
+    for param_group in optimizer.param_groups:
+        param_group['weight_decay'] = original_wd
+    model.train()
+    
+    # Очистка памяти
+    if device == 'cuda':
+        torch.cuda.empty_cache()
+    gc.collect()
+    
+    # Построение графика
+    if plot:
+        plt.figure(figsize=(12, 8))
+        
+        for wd, losses in results.items():
+            epochs_x = list(range(1, len(losses)+1))
+            plt.plot(epochs_x, losses, label=f'WD: {wd:.0e}', marker='o')
+        
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.title('Weight Decay Finder - Training Loss Comparison')
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.grid(True, linestyle='--', alpha=0.6)
+        
+        # Добавляем вертикальную линию с оптимальным weight decay
+        plt.axhline(y=final_losses[optimal_wd], color='red', linestyle='--', 
+                   label=f'Optimal WD: {optimal_wd:.2e}')
+        
+        plt.tight_layout()
         plt.show()
     
     if verbose:
-        print(f"\nOptimal batch size: {optimal_batch_size}")
-        print(f"Target metric: {target_metric}")
-        print(f"Final metrics for optimal batch size:")
-        optimal_metrics = results[optimal_idx]['metrics']
-        print(f"  Throughput: {optimal_metrics['throughput']:.2f} samples/sec")
-        print(f"  Loss std: {optimal_metrics['loss_std']:.4f}")
-        print(f"  Memory usage: {optimal_metrics['memory_usage'] / 1024**3:.2f} GB")
+        print(f"\nОптимальный weight decay: {optimal_wd}")
+        print(f"Финальный loss при оптимальном WD: {final_losses[optimal_wd]:.4f}")
     
-    return batch_sizes_tested, throughputs, optimal_batch_size
+    return results, optimal_wd, final_losses
 
+
+# Пример вызова функции
+"""
+# Пример использования weight_decay_finder
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+# Создание модели и данных (пример)
+model = nn.Sequential(
+    nn.Linear(10, 50),
+    nn.ReLU(),
+    nn.Linear(50, 1)
+)
+
+# Синтетические данные
+X = torch.randn(1000, 10)
+y = torch.randn(1000, 1)
+dataset = TensorDataset(X, y)
+train_loader = DataLoader(dataset, batch_size=32, shuffle=True)
+
+# Оптимизатор и функция потерь
+optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=0)  # Изначально без weight decay
+criterion = nn.MSELoss()
+
+# Запуск поиска оптимального weight decay
+results, optimal_wd, final_losses = weight_decay_finder(
+    model=model,
+    train_loader=train_loader,
+    optimizer=optimizer,
+    criterion=criterion,
+    base_lr=1e-3,
+    weight_decays=[0, 1e-5, 1e-4, 1e-3, 1e-2],  # Специфический диапазон
+    num_epochs=3,
+    device='cuda' if torch.cuda.is_available() else 'cpu',
+    accumulation_steps=1,
+    use_amp=torch.cuda.is_available(),
+    verbose=True,
+    plot=True
+)
+
+print(f"Оптимальный weight decay: {optimal_wd}")
+print("Финальные значения loss для каждого weight decay:")
+for wd, loss in final_losses.items():
+    print(f"  WD={wd:.0e}: {loss:.4f}")
+"""
+    
  
-
