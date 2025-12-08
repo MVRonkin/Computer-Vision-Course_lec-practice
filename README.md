@@ -47,8 +47,9 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [MIT Foundation of CV](https://visionbook.mit.edu/)
 * [stanford cs231n 2025 CV](https://cs231n.stanford.edu/slides/2025/)
 * [hyper.ai (paperwithcode)](https://hyper.ai/en/sota)
-* [F.Shole Deep learning with python](https://deeplearningwithpython.io/chapters/) and [github](https://github.com/fchollet/deep-learning-with-python-notebooks)
-* 
+* [F.Chole Deep learning with python](https://deeplearningwithpython.io/chapters/) and [github](https://github.com/fchollet/deep-learning-with-python-notebooks)
+* [Zero-to-Mastery learn pytorch](https://www.learnpytorch.io/)
+* [HF compunity CV course](https://huggingface.co/learn/computer-vision-course/unit0/welcome/welcome)
 
 еще более доп. лит.
 * [курс по дифузионкам](https://arxiv.org/pdf/2406.08929)
@@ -68,6 +69,9 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [prgoram history cv](https://programminghistorian.org/en/lessons/computer-vision-deep-learning-pt1)
 * [deep_learning_tutorial_iciap](https://www.ee.cuhk.edu.hk/~xgwang/deep_learning_tutorial_iciap.pdf)
 * [mit cv dl](https://introtodeeplearning.com/2019/materials/2019_6S191_L3.pdf)
+* [understanding dl book](https://udlbook.github.io/udlbook/)
+* [uav dl course](https://uvadlc-notebooks.readthedocs.io/en/latest/index.html)
+* [full stack dl 2022](https://fullstackdeeplearning.com/course/2022/)
 
 
 инструменты
