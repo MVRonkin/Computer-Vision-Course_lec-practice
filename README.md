@@ -39,6 +39,7 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [F.Chole Deep learning with python](https://deeplearningwithpython.io/chapters/) and [github](https://github.com/fchollet/deep-learning-with-python-notebooks)
 * [Zero-to-Mastery learn pytorch](https://www.learnpytorch.io/)
 * [HF compunity CV course](https://huggingface.co/learn/computer-vision-course/unit0/welcome/welcome)
+* [autonomous-vision course](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/lectures/computer-vision/)
 
 ## еще более доп. лит.
 * [курс по дифузионкам](https://arxiv.org/pdf/2406.08929)
@@ -63,6 +64,7 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [full stack dl 2022](https://fullstackdeeplearning.com/course/2022/)
 * [Famous Deep Learning Papers](https://papers.baulab.info/)
 * [Annotated Research Paper Implementations/Deep Learning Paper Implementations](https://nn.labml.ai/)
+* [blog ssl](https://lilianweng.github.io/posts/2019-11-10-self-supervised/)
   
 ## всякие интересные репозитории
 * [Deep-Learning-From-Scratch](https://github.com/lakshyaag/Deep-Learning-From-Scratch)
