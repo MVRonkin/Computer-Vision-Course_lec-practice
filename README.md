@@ -72,10 +72,18 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [understanding dl book](https://udlbook.github.io/udlbook/)
 * [uav dl course](https://uvadlc-notebooks.readthedocs.io/en/latest/index.html)
 * [full stack dl 2022](https://fullstackdeeplearning.com/course/2022/)
-
+* [Famous Deep Learning Papers](https://papers.baulab.info/)
+* [Annotated Research Paper Implementations/Deep Learning Paper Implementations](https://nn.labml.ai/)
+  
+всякие интересные репозитории
+* [Deep-Learning-From-Scratch](https://github.com/lakshyaag/Deep-Learning-From-Scratch)
+* [Deep Learning Fundamentals: Code Materials and Exercises](https://github.com/Lightning-AI/dl-fundamentals)
+* [Awesome Deep Learning](https://github.com/ChristosChristofidis/awesome-deep-learning)
+* [the incredible pytorch](https://github.com/ritchieng/the-incredible-pytorch)
 
 инструменты
 * [AlbumentationsX  - новая версия библиотеки Albumentation](https://github.com/albumentations-team/AlbumentationsX)
 * [Vit=pytorch - библа о ViT](https://github.com/lucidrains/vit-pytorch)
 * [lightly - библиотека для SSL](https://docs.lightly.ai/self-supervised-learning/index.html)
 * [skorch - high api  в стиле sklearn для торч](https://github.com/skorch-dev/skorch)
+* [fast.ai - very fast torch compatible framework](https://www.fast.ai/)
