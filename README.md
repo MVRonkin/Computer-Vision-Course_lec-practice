@@ -1,5 +1,10 @@
 Материалы курса представлены в репозитории https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/tree/main/2025 
 
+#  Содержание курса Mind Map
+
+<img src="https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/%D0%B1%D1%83%D0%BC%D0%B0%D0%B3%D0%B8/Course%20structure.png?raw=true" alt="Description" style="width:700px;height:800px;">
+
+
 #  Основные материалы курса
 
 | код | Раздел  | Содержание      | ссылка на лекцию     | ссылка на практику    | Контрольное мероприятие    |
