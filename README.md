@@ -72,6 +72,7 @@ https://github.com/MVRonkin/Computer-Vision-Course_lec-practice/blob/main/2025/R
 * [Annotated Research Paper Implementations/Deep Learning Paper Implementations](https://nn.labml.ai/)
 * [blog ssl](https://lilianweng.github.io/posts/2019-11-10-self-supervised/)
 * [blog pytorch internals](https://blog.ezyang.com/2019/05/pytorch-internals/)
+* [tuning_playbook](https://github.com/google-research/tuning_playbook)
   
 ## всякие интересные репозитории
 * [Deep-Learning-From-Scratch](https://github.com/lakshyaag/Deep-Learning-From-Scratch)
